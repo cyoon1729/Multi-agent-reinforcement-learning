@@ -1,8 +1,8 @@
 # Multi-agent Reinforcement Learning
 
-it's coming
+WORK IN PROGRESS
 
-## What's Inside:
+## What's Inside
 ### - MADDPG
 - Implementation of algorithm presented in OpenAI's publication "Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments"
 - multiagent-particle-environment: follow install instructions in https://github.com/openai/multiagent-particle-envs
