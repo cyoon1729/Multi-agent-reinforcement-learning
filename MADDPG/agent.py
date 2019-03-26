@@ -82,3 +82,4 @@ class SingleAgent():
 
     def cuda_update(self, experience_batch):
         # Will implement when I have access to cuda 
+        pass
