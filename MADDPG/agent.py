@@ -24,8 +24,8 @@ class SingleAgent():
         self.critic_target = CentralizedCritic(critic_input_dim, hidden_dims=[1024,512,300], output_dim=1)
         self.actor_target = Actor(actor_input_dim, hidden_dims=[512,128], output_dim=1)
         
-        # I will assume an agent has information about other agents' policies
-        # self.other_agent_policy_inference = Actor(actor_input_dim, hidden_dims=[512,128], output_dim=1)
+        # assume an agent has information about other agents' policies
+        ## self.other_agent_policy_inference = Actor(actor_input_dim, hidden_dims=[512,128], output_dim=1)
         
         # Copy params to target network params
         for target_param, param in zip(self.actor_target.parameters(), self.actor.parameters()):
