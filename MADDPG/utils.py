@@ -13,7 +13,7 @@ class OUNoise(object):
         self.max_sigma    = max_sigma
         self.min_sigma    = min_sigma
         self.decay_period = decay_period
-        self.action_dim   = action_space.shape[0]
+        self.action_dim   = action_space[0].n
         self.low          = action_space.low
         self.high         = action_space.high
         self.reset()

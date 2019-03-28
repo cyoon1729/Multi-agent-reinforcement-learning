@@ -3,26 +3,28 @@ import torch.nn as nn
 import torch.autograd
 from torch.autograd import Variable
 from model import *
+import torch.optim as optim
 
 # This is a DDPG agent with a centralized critic
 class SingleAgent():
-    def __init__(self, env, num_agents, actor_learning_rate=1e-4, critic_learning_rate=1e-3, gamma=0.99, tau=1e-2):
+    def __init__(self, env, agent_id, actor_learning_rate=1e-4, critic_learning_rate=1e-3, gamma=0.99, tau=1e-2):
         # Environment Info
-        self.observation_dim = env.observation_space[0].shape[0]
-        self.action_dim = env.action_space[0].n
-        self.num_agents = num_agents
+        self.observation_dim = env.observation_space[agent_id].shape[0]
+        self.action_dim = env.action_space[agent_id].n
+        self.num_agents = env.n
+        self.agent_id = agent_id
         
         # hyperparams
         self.tau = tau
         self.gamma = gamma
 
-        critic_input_dim = self.observation_dim * num_agents + num_agents # observation_dim * num_agent -> the 'x' input | num_agents -> number of actions
+        critic_input_dim = self.observation_dim * self.num_agents + self.num_agents # observation_dim * num_agent -> the 'x' input | num_agents -> number of actions
         actor_input_dim = self.observation_dim
 
         self.critic = CentralizedCritic(critic_input_dim, hidden_dims=[1024,512,300], output_dim=1)
-        self.actor = Actor(actor_input_dim, hidden_dims=[512,128], output_dim=1)
+        self.actor = Actor(actor_input_dim, hidden_dims=[512,128], output_dim=self.action_dim)
         self.critic_target = CentralizedCritic(critic_input_dim, hidden_dims=[1024,512,300], output_dim=1)
-        self.actor_target = Actor(actor_input_dim, hidden_dims=[512,128], output_dim=1)
+        self.actor_target = Actor(actor_input_dim, hidden_dims=[512,128], output_dim=self.action_dim)
         
         # assume an agent has information about other agents' policies
         ## self.other_agent_policy_inference = Actor(actor_input_dim, hidden_dims=[512,128], output_dim=1)
@@ -41,8 +43,7 @@ class SingleAgent():
     def get_actor_output(self, state):
         state = Variable(torch.from_numpy(state).float().unsqueeze(0))
         action = self.actor.forward(state)
-        action = action.detach().numpy()[0,0]
-
+        action = action.detach().numpy()[0]
         return action
 
     def update(self, experience_batch):

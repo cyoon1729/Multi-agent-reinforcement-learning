@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn 
-import torch.nn.Functional as F
+import torch.nn.functional as F 
 import torch.autograd
 from torch.autograd import Variable
 
-class CentralizedCritic(nn.module):
-    def __init__(self, input_dim, hidden_dims=[1024,512,300], output_dim=1):
-        super(CentralizedCritic, self).__init__.py
+#[1024, 512,300]
+class CentralizedCritic(nn.Module):
+    def __init__(self, input_dim, hidden_dims, output_dim):
+        super(CentralizedCritic, self).__init__()
         """
         Param:
           - input_dum: this is num_agent * observation_dimensions + num_agents * action_dimensions ???
@@ -54,17 +55,17 @@ class Critic(nn.Module):
 
         return x
 
-
-class Actor(nn.module):
-    def __init__(self, input_dim, hidden_dims=[512,128], output_dim):
-        super(Actor, self).__init__.py
+# [512,128]
+class Actor(nn.Module):
+    def __init__(self, input_dim, hidden_dims, output_dim):
+        super(Actor, self).__init__()
         """
         Param:
          - input_dim: observation dim of environment
          - hidden_dims: array of len 2 for hidden layer dimensions
          - output_dim: action dim of environment
         """
-        self.linear1 = nn.linear(input_dim, hidden_dims[0])
+        self.linear1 = nn.Linear(input_dim, hidden_dims[0])
         self.linear2 = nn.Linear(hidden_dims[0], hidden_dims[1])
         self.linear3 = nn.Linear(hidden_dims[1], output_dim)
     

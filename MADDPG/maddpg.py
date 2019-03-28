@@ -2,6 +2,7 @@ import sys
 import numpy as np 
 from agent import *
 from utils import *
+import torch 
 
 class MADDPG():
     def __init__(self, env, num_agents, memory_maxlen=50000):
@@ -13,16 +14,16 @@ class MADDPG():
         # Initialize replay_buffer
         self.replay_buffer = Memory(max_size = memory_maxlen)
         # Exploration noise
-        self.noise = OUNoise(self.env.action_space)
+        #self.noise = OUNoise(self.env.action_space)
         
-    def get_actions(self, state):
+    def get_actions(self, states):
         actions = []
-        for agent in agents:
+        for agent, state in zip(self.agents, states):
+            #print(agent.agent_id, state)
             action = agent.get_actor_output(state)
-            action = action.detach().numpy()[0,0]
+            print(agent.agent_id, state, action)
             actions.append(action)
-        actions = np.stack(action)
-
+        actions = np.array(actions)
         return actions
 
     def update(self, batch_size):
@@ -38,12 +39,12 @@ class MADDPG():
 
         for episodes in range(max_episodes):
             states = self.env.reset()
-            self.noise.reset()
+            #self.noise.reset()
             epiode_reward = 0
             
             for steps in range(max_steps):
                 actions = self.get_actions(states)
-                actions = [self.noise.get_action(action) for action in actions]
+                #actions = [self.noise.get_action(action) for action in actions]
                 new_states, rewards, dones, _ = self.env.step(actions)
                 # we are only done when every agent is done
                 if all(dones) or steps == max_steps - 1:
