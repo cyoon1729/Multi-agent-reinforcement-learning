@@ -28,7 +28,7 @@ class CentralizedCritic(nn.Module):
         Return:
           - Q value for agent i
         """
-        x = torch.cat([state, action], 1)
+        x = torch.cat([states, actions], 1)
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
         x = F.relu(self.linear3(x))

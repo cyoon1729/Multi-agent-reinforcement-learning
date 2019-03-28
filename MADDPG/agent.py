@@ -4,6 +4,7 @@ import torch.autograd
 from torch.autograd import Variable
 from model import *
 import torch.optim as optim
+import numpy as np
 
 # This is a DDPG agent with a centralized critic
 class SingleAgent():
@@ -18,7 +19,8 @@ class SingleAgent():
         self.tau = tau
         self.gamma = gamma
 
-        critic_input_dim = self.observation_dim * self.num_agents + self.num_agents # observation_dim * num_agent -> the 'x' input | num_agents -> number of actions
+        #critic_input_dim = self.observation_dim * self.num_agents + self.action_dim * self.num_agents 
+        critic_input_dim = int(np.sum([env.observation_space[agent].shape[0] for agent in range(env.n)])) + int(np.sum([env.action_space[agent].n for agent in range(env.n)])) 
         actor_input_dim = self.observation_dim
 
         self.critic = CentralizedCritic(critic_input_dim, hidden_dims=[1024,512,300], output_dim=1)

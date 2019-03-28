@@ -21,7 +21,7 @@ class MADDPG():
         for agent, state in zip(self.agents, states):
             #print(agent.agent_id, state)
             action = agent.get_actor_output(state)
-            print(agent.agent_id, state, action)
+            # print(agent.agent_id, state, action)
             actions.append(action)
         actions = np.array(actions)
         return actions
