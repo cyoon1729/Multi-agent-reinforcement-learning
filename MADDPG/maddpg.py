@@ -25,6 +25,9 @@ class MADDPG():
             actions.append(action)
         actions = np.array(actions)
         return actions
+    
+    def get_one_hot_actions(self):
+        pass
 
     def update(self, batch_size):
         experience_batch = replay_buffer.sample(batch_size)
@@ -65,8 +68,3 @@ class MADDPG():
                     rewards.append(episode_reward)
                     sys.stdout.write("episode: {}, reward: {}, rolling_10_average _reward: {} \n".format(episode, np.round(episode_reward, decimals=2), np.mean(rewards[-10:])))
                     break
-
-
-
-                
-
