@@ -30,9 +30,40 @@ class MADDPG():
         pass
 
     def update(self, batch_size):
-        experience_batch = replay_buffer.sample(batch_size)
-        for agent in agents:
-            agent.update(experience_batch)
+        experiences = self.replay_buffer.sample(batch_size)
+        states_batch, actions_batch, rewards_batch, next_states_batch, done_batch = experiences
+
+        # indiv_state_batch = [states[self.agent_id] for states in state_batch] # Observations of only agent i
+        total_state_batch = [np.concatenate(states) for states in states_batch] # Concatenate observations of all agents
+        action_batch = [np.concatenate(actions) for actions in actions_batch] # Concatenate action vectors of all agents
+        # reward_batch = [rewards.flatten()[self.agent_id] for rewards in rewards_batch]  # Isolate rewards of agent i
+        next_state_batch = [np.concatenate(next_states) for next_states in next_states_batch]
+
+        # To tensors
+        # indiv_state_batch = torch.FloatTensor(indiv_state_batch)
+        total_state_batch = torch.FloatTensor(total_state_batch)
+        action_batch = torch.FloatTensor(action_batch)
+        # reward_batch = torch.FloatTensor(reward_batch)
+        next_state_batch = torch.FloatTensor(next_state_batch)
+        
+        for agent in self.agents:
+            #indiv_state_batch = [states[agent.agent_id] for states in states_batch]
+            #indiv_state_batch = torch.FloatTensor(indiv_state_batch)
+            #total_action_batch = torch.cat(actions)
+            
+            new_actions = torch.cat(tuple([  # apologies 
+                torch.squeeze(_agent.actor.forward(torch.FloatTensor([states[_agent.agent_id] for states in states_batch]))) for _agent in self.agents
+            ]))
+            new_actions = torch.unsqueeze(new_actions, 0)
+            policy_loss = -agent.critic.forward(total_state_batch, new_actions).mean()
+
+
+
+
+            agent.actor_optimizer.zero_grad()
+            policy_loss.backward()
+            agent.actor_optimizer.step()
+
     
     def train(self, config):
         max_episodes = config.max_episodes
