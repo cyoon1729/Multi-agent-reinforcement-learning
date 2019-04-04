@@ -48,18 +48,32 @@ class SingleAgent():
         action = action.detach().numpy()[0]
         return action
 
-    def update(self, experience_batch):
+    def update(self, all_agents, experience_batch):
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = experience_batch
-        state_batch = torch.FloatTensor(state_batch)
+        indiv_state_batch = [states[self.agent_id] for states in state_batch] # Observations of only agent i
+        total_state_batch = [np.concatenate(states) for states in state_batch] # Concatenate observations of all agents
+        action_batch = [np.concatenate(actions) for actions in action_batch] # Concatenate action vectors of all agents
+        reward_batch = [rewards.flatten()[self.agent_id] for rewards in reward_batch]  # Isolate rewards of agent i
+        next_state_batch = [np.concatenate(next_states) for next_states in next_state_batch]
+
+        # Convert batches to float tensors
+        indiv_state_batch = torch.FloatTensor(indiv_state_batch)
+        total_state_batch = torch.FloatTensor(total_state_batch)
         action_batch = torch.FloatTensor(action_batch)
         reward_batch = torch.FloatTensor(reward_batch)
         next_state_batch = torch.FloatTensor(next_state_batch)
-        done_batch = torch.FloatTensor(done_batch)
-
-        # Calculate actor (policy) loss
-        policy_loss = self.critic.forward(state_batch, self.actor.forward(state_batch))
-        policy_loss = -policy_loss.mean() 
         
+        #print("actor: ", self.actor.forward(indiv_state_batch))
+        # print(state_batch)
+        # print(action_batch)
+        # print(reward_batch)
+        # print(next_state_batch)
+        #done_batch = torch.FloatTensor(done_batch)
+        
+        # Calculate actor (policy) loss
+        policy_loss = self.critic.forward(total_state_batch, self.actor.forward(indiv_state_batch))
+        policy_loss = -policy_loss.mean() 
+        """
         # calculate critic loss
         curr_Qvals = self.critic.forward(state_batch, action_batch)
         next_actions = self.actor_target.forward(next_state_batch)
@@ -82,7 +96,7 @@ class SingleAgent():
        
         for target_param, param in zip(self.critic_target.parameters(), self.critic.parameters()):
             target_param.data.copy_(param.data * self.tau + target_param.data * (1.0 - self.tau))
-
+        """
     def cuda_update(self, experience_batch):
         # Will implement when I have access to cuda 
         pass
