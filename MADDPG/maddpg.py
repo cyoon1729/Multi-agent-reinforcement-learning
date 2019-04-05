@@ -4,6 +4,10 @@ from agent import *
 from utils import *
 import torch 
 
+"""
+TODO: Fix the policy update mess. nested arrays
+"""
+
 class MADDPG():
     def __init__(self, env, num_agents, memory_maxlen=50000):
         self.env = env
@@ -47,22 +51,55 @@ class MADDPG():
         next_state_batch = torch.FloatTensor(next_state_batch)
         
         for agent in self.agents:
+            
+            """
+            Obtain actions of all agents using current policies. 
+            Psuedocode:
+
+            1. for each state in state_batch:
+                  Obtain action output (tensor) of each agent for all agents and store in tuple -> ( Tensor([a1]), Tensor([a2]), ..., Tensor([an]) ), where ai is action of agent i
+                  concatenate tuple so that we have all actions in a single tensor -> Tensor([a1, a2, ... , an])
+                  Store tensor to new_action_batch
+           
+            Output[1]: new_action_batch = [ Tensor([a1, a2, a3, a4, ..., an]_{state_1}, Tensor([a1, a2, a3, a4, ..., an]_{state_2}, ..., Tensor([a1, a2, a3, a4, ..., an]_{state_n}) ]
+
+            2. Stack all tensors in new_action_batch
+
+            Output[2]: new_action_batch = Tensor([[a1, a2, a3, a4, ..., an]_{state_1}, [a1, a2, a3, a4, ..., an]_{state_2}, ..., [a1, a2, a3, a4, ..., an]_{state_n}])      
+            """
+            new_action_batches = []
+            for states in states_batch: # state_batch = [ [[n1] [n2] [n3] [n4] ... [nn]], [[n1] [n2] [n3] [n4] .. [nn]], .... ], states in state_batch = [[n1] [n2] [n3] [n4] ... [nn]]
+                actions_tuple = ()
+                for _agent in self.agents:
+                    indiv_state = states[_agent.agent_id]
+                    indiv_state = torch.FloatTensor(indiv_state)
+                    action = _agent.actor.forward(indiv_state)
+                    actions_tuple += (action,)
+
+                new_action_batches.append(torch.cat(actions_tuple))
+        
+            new_action_batches = torch.stack(new_action_batches)
+            
+            """
+            Compute policy loss
+            """
+            policy_loss = -(agent.critic.forward(total_state_batch, new_action_batches).mean())
+            
+
+            # Compute value loss
+
             #indiv_state_batch = [states[agent.agent_id] for states in states_batch]
             #indiv_state_batch = torch.FloatTensor(indiv_state_batch)
             #total_action_batch = torch.cat(actions)
+         
+            # indiv_reward_batch = [rewards.flatten()[self.agent_id] for rewards in rewards_batch] 
             
-            new_actions = torch.cat(tuple([  # apologies 
-                torch.squeeze(_agent.actor.forward(torch.FloatTensor([states[_agent.agent_id] for states in states_batch]))) for _agent in self.agents
-            ]))
-            new_actions = torch.unsqueeze(new_actions, 0)
-            policy_loss = -agent.critic.forward(total_state_batch, new_actions).mean()
-
-
-
-
-            agent.actor_optimizer.zero_grad()
-            policy_loss.backward()
-            agent.actor_optimizer.step()
+            
+            
+            # Update parameters
+            # agent.actor_optimizer.zero_grad()
+            # policy_loss.backward()
+            # agent.actor_optimizer.step()
 
     
     def train(self, config):
