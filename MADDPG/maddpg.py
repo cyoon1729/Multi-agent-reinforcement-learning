@@ -92,9 +92,9 @@ class MADDPG():
 
                 next_action_batch.append(torch.cat(next_actions_tuple))
 
-            current_Q = agent.critic.forward(total_state_batch, current_action_batch)
+            current_Q = agent.critic.forward(total_state_batch, current_action_batch.detach())
             next_action_batch = torch.stack(next_action_batch)
-            next_Q = agent.critic_target.forward(next_state_batch, next_action_batch)
+            next_Q = agent.critic_target.forward(next_state_batch, next_action_batch.detach())
             indiv_reward_batch = torch.FloatTensor([rewards.flatten()[agent.agent_id] for rewards in rewards_batch])
             indiv_reward_batch = torch.unsqueeze(indiv_reward_batch, dim=1)
             new_Q = indiv_reward_batch + agent.gamma * next_Q
