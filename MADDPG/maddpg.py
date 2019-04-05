@@ -81,19 +81,21 @@ class MADDPG():
             new_action_batches = torch.stack(new_action_batches)
             
             """
-            Compute policy loss
+            Compute policy loss for agent i
             """
             policy_loss = -(agent.critic.forward(total_state_batch, new_action_batches).mean())
             
 
-            # Compute value loss
-
+            """
+            Copmute value loss for agent i
+            """
+            
             #indiv_state_batch = [states[agent.agent_id] for states in states_batch]
             #indiv_state_batch = torch.FloatTensor(indiv_state_batch)
             #total_action_batch = torch.cat(actions)
          
-            # indiv_reward_batch = [rewards.flatten()[self.agent_id] for rewards in rewards_batch] 
-            
+            indiv_reward_batch = [rewards.flatten()[self.agent_id] for rewards in rewards_batch] 
+            print(indiv_reward_batch)
             
             
             # Update parameters
