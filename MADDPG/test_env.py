@@ -34,6 +34,7 @@ for _ in range(100):
     actions = agents.get_actions(state)
     new_states, reward, done, _ = env.step(actions)
     agents.replay_buffer.push(states, actions, reward, new_states, done)
+    states = new_states
 
 experience = agents.replay_buffer.sample(1)
 s, a, r, ns, d = experience
@@ -41,7 +42,7 @@ s = np.concatenate(s)
 a = np.concatenate(a)
 
 
-experiences = agents.replay_buffer.sample(1)
+experiences = agents.replay_buffer.sample(2)
 ss, aa, rr, nnss, dd = experiences
 # for s in ss:
 #     print("-----")
@@ -58,12 +59,14 @@ rr = [r_.flatten()[agents.agents[3].agent_id] for r_ in rr]
 ss = torch.FloatTensor(ss)
 aa = torch.FloatTensor(aa)
 rr = torch.FloatTensor(rr)
+print("working input")
 print(ss)
 print(aa)
+print(".............")
 # print(rr)
 value = agents.agents[0].critic.forward(ss, aa)
 # print(rr + value)
 
 #experiences = agents.replay_buffer.sample(1)
 #agents.agents[0].update(experiences)
-agents.update(1)
+agents.update(10)
