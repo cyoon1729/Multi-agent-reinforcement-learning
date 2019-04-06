@@ -4,7 +4,6 @@ import torch.nn.functional as F
 import torch.autograd
 from torch.autograd import Variable
 
-#[1024, 512,300]
 class CentralizedCritic(nn.Module):
     def __init__(self, input_dim, hidden_dims, output_dim):
         super(CentralizedCritic, self).__init__()
@@ -36,26 +35,6 @@ class CentralizedCritic(nn.Module):
 
         return x
 
-        
-class Critic(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super(Critic, self).__init__()
-        self.linear1 = nn.Linear(input_dim, hidden_dim)
-        self.linear2 = nn.Linear(hidden_dim, hidden_dim)
-        self.linear3 = nn.Linear(hidden_dim, output_dim)
-
-    def forward(self, state, action):
-        """
-        Params state and actions are torch tensors
-        """
-        x = torch.cat([state, action], 1)
-        x = F.relu(self.linear1(x))
-        x = F.relu(self.linear2(x))
-        x = self.linear3(x)
-
-        return x
-
-# [512,128]
 class Actor(nn.Module):
     def __init__(self, input_dim, hidden_dims, output_dim):
         super(Actor, self).__init__()
