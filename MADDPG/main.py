@@ -15,5 +15,8 @@ def make_env(scenario_name, benchmark=False):
     return env
 
 env = make_env(scenario_name="simple_tag")
+#for agents in range(env.n):
+#    print(env.action_space[agents].n)
+#print(env.action_space.sample())
 agents = MADDPG(env, env.n)
 agents.train(max_episodes=100, max_steps=100, batch_size=50)
