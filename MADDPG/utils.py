@@ -1,64 +1,53 @@
-import numpy as np
-import gym
-from collections import deque
+import numpy as np 
 import random
+from collections import deque
+import torch
 
-# Ornstein-Ulhenbeck Process
-# Taken from #https://github.com/vitchyr/rlkit/blob/master/rlkit/exploration_strategies/ou_strategy.py
-class OUNoise(object):
-    def __init__(self, action_space, mu=0.0, theta=0.15, max_sigma=0.3, min_sigma=0.3, decay_period=100000):
-        self.mu           = mu
-        self.theta        = theta
-        self.sigma        = max_sigma
-        self.max_sigma    = max_sigma
-        self.min_sigma    = min_sigma
-        self.decay_period = decay_period
-        self.action_dim   = action_space[0].n
-        self.low          = action_space.low
-        self.high         = action_space.high
-        self.reset()
-        
-    def reset(self):
-        self.state = np.ones(self.action_dim) * self.mu
-        
-    def evolve_state(self):
-        x  = self.state
-        dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(self.action_dim)
-        self.state = x + dx
-        return self.state
+class MultiAgentReplayBuffer:
     
-    def get_action(self, action, t=0):
-        ou_state = self.evolve_state()
-        self.sigma = self.max_sigma - (self.max_sigma - self.min_sigma) * min(1.0, t / self.decay_period)
-        return np.clip(action + ou_state, self.low, self.high)
-
-class Memory:
-    def __init__(self, max_size):
+    def __init__(self, num_agents, max_size):
         self.max_size = max_size
+        self.num_agents = num_agents
         self.buffer = deque(maxlen=max_size)
     
     def push(self, state, action, reward, next_state, done):
-        experience = (state, action, np.array([reward]), next_state, done)
+        experience = (state, action, np.array(reward), next_state, done)
         self.buffer.append(experience)
-
+    
     def sample(self, batch_size):
-        state_batch = []
-        action_batch = []
-        reward_batch = []
-        next_state_batch = []
+        obs_batch = [[] for _ in range(self.num_agents)]  # [ [states of agent 1], ... ,[states of agent n] ]    ]
+        indiv_action_batch = [[] for _ in range(self.num_agents)] # [ [actions of agent 1], ... , [actions of agent n]]
+        indiv_reward_batch = [[] for _ in range(self.num_agents)]
+        next_obs_batch = [[] for _ in range(self.num_agents)]
+
+        global_state_batch = []
+        global_next_state_batch = []
+        global_actions_batch = []
         done_batch = []
 
         batch = random.sample(self.buffer, batch_size)
 
+
         for experience in batch:
             state, action, reward, next_state, done = experience
-            state_batch.append(state)
-            action_batch.append(action)
-            reward_batch.append(reward)
-            next_state_batch.append(next_state)
+            
+            for i in range(self.num_agents):
+                obs_i = state[i]
+                action_i = action[i]
+                reward_i = reward[i]
+                next_obs_i = next_state[i]
+            
+                obs_batch[i].append(obs_i)
+                indiv_action_batch[i].append(action_i)
+                indiv_reward_batch[i].append(reward_i)
+                next_obs_batch[i].append(next_obs_i)
+
+            global_state_batch.append(np.concatenate(state))
+            global_actions_batch.append(torch.cat(action))
+            global_next_state_batch.append(np.concatenate(next_state))
             done_batch.append(done)
         
-        return state_batch, action_batch, reward_batch, next_state_batch, done_batch
+        return obs_batch, indiv_action_batch, indiv_reward_batch, next_obs_batch, global_state_batch, global_actions_batch, global_next_state_batch, done_batch
 
     def __len__(self):
         return len(self.buffer)
