@@ -9,7 +9,7 @@ WORK IN PROGRESS
 - multiagent-particle-environment: follow install instructions in https://github.com/openai/multiagent-particle-envs
 - Tested on Spread environment.
 - TODO:
-  - Test on competitive tests
+  - Test on competitive tasks
 
 ## Running the code & Dependencies
 - Python 3.6
