@@ -51,7 +51,7 @@ class MADDPG:
                 actions = self.get_actions(states)
                 #print(actions)
                 next_states, rewards, dones, _ = self.env.step(actions)
-                episode_reward += np.sum(rewards)
+                episode_reward += np.mean(rewards)
                 #print(step)
                 
                 if all(dones) or step == max_steps - 1:
