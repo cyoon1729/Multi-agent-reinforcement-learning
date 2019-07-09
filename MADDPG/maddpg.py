@@ -49,11 +49,9 @@ class MADDPG:
             episode_reward = 0
             for step in range(max_steps):
                 actions = self.get_actions(states)
-                #print(actions)
                 next_states, rewards, dones, _ = self.env.step(actions)
                 episode_reward += np.mean(rewards)
-                #print(step)
-                
+        
                 if all(dones) or step == max_steps - 1:
                     dones = [1 for _ in range(self.num_agents)]
                     self.replay_buffer.push(states, actions, rewards, next_states, dones)
